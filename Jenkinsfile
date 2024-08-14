@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git credentialsId: 'github-api', url: 'https://github.com/SaiSakthidar/Spider_Onsite_Devops',branch: 'main'
+                git credentialsId: 'github-api', url: 'https://github.com/SaiSakthidar/Spider_Onsite_Devops', branch: 'main'
             }
         }
 
@@ -28,14 +28,17 @@ pipeline {
         stage('Run Unit Tests') {
             steps {
                 script {
-                    docker.image("${env.DOCKER_IMAGE_USER}").inside {
+                    docker.image("${env.DOCKER_IMAGE_USER}").inside('-w /usr/src/app') {
                         sh 'npm install'
+                        sh 'npm test'
                     }
-                    docker.image("${env.DOCKER_IMAGE_PRODUCT}").inside {
+                    docker.image("${env.DOCKER_IMAGE_PRODUCT}").inside('-w /usr/src/app') {
                         sh 'npm install'
+                        sh 'npm test'
                     }
-                    docker.image("${env.DOCKER_IMAGE_ORDER}").inside {
+                    docker.image("${env.DOCKER_IMAGE_ORDER}").inside('-w /usr/src/app') {
                         sh 'npm install'
+                        sh 'npm test'
                     }
                 }
             }
@@ -46,6 +49,7 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'docker-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                         sh "echo ${env.DOCKER_PASSWORD} | docker login ${env.DOCKER_REGISTRY} -u ${env.DOCKER_USERNAME} --password-stdin"
+                        docker.image("${env.DOCKER_IMAGE_USER}").push()
                         docker.image("${env.DOCKER_IMAGE_PRODUCT}").push()
                         docker.image("${env.DOCKER_IMAGE_ORDER}").push()
                     }
