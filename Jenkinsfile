@@ -18,9 +18,9 @@ pipeline {
         stage('Build Docker Images') {
             steps {
                 script {
-                    docker.build("${env.DOCKER_IMAGE_USER}", './user-service')
-                    docker.build("${env.DOCKER_IMAGE_PRODUCT}", './product-service')
-                    docker.build("${env.DOCKER_IMAGE_ORDER}", './order-service')
+                    docker.build("${env.DOCKER_IMAGE_USER}", '-f ./user-service/Dockerfile.user ./user-service')
+                    docker.build("${env.DOCKER_IMAGE_PRODUCT}", '-f ./product-service/Dockerfile.product ./product-service')
+                    docker.build("${env.DOCKER_IMAGE_ORDER}", '-f ./order-service/Dockerfile.order ./order-service')
                 }
             }
         }
