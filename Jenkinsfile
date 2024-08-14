@@ -11,15 +11,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                dir('C:/Users/saisa/OneDrive/Desktop/spider/spider_sw_task2/spiderTask-2') {
-                    script {
-                        if (!fileExists('.git')) {
-                            sh 'git init'
-                        }
-                        sh 'git fetch'
-                        sh 'git checkout -f'
-                    }
-                }
+                git url: 
             }
         }
 
