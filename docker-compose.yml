@@ -1,0 +1,74 @@
+
+services:
+  user:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile.user
+    deploy:
+       replicas: 3
+    environment:
+      NODE_ENV: production
+    depends_on:
+      - postgres
+    dns:
+      - "8.8.8.8"
+      - "8.8.4.4"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  product:
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile.product
+    deploy:
+      replicas: 3
+    environment:
+      NODE_ENV: production
+    depends_on:
+      - postgres
+    dns:
+      - "8.8.8.8"
+      - "8.8.4.4"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  order:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile.order
+    deploy:
+      replicas: 3
+    environment:
+      NODE_ENV: production
+    depends_on:
+      - postgres
+    dns:
+      - "8.8.8.8"
+      - "8.8.4.4"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  postgres:
+    image: postgres
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: 12345678
+      POSTGRES_DB: db
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - user
+      - product
+      - order
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

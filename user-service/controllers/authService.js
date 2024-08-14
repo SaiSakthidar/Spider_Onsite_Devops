@@ -7,9 +7,8 @@ const { createClient } = require('redis');
 const redisClient = createClient({ url: 'redis://redis:6379' });
 
 async function viewUsers(req, res) {
-
   redisClient.connect();
-  const name = req.body.name;
+  const name = req.query.name; // Changed from req.body.name to req.query.name
 
   redisClient.on("connect", () => {
     console.log("Connected to Redis");
@@ -19,22 +18,21 @@ async function viewUsers(req, res) {
   if (value !== null) {
     const parsedValue = JSON.parse(value);
     return res.json(parsedValue);
+  } else {
+    User.findOne({ name })
+      .then((user) => {
+        if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+        }
+
+        redisClient.setEx(name, DEFAULT_EXPIRATION, JSON.stringify(user));
+        return res.json(user);
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
   }
-  else (value == null);
-  User.findOne({ name })
-    .then((user) => {
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-
-      redisClient.setEx(name, DEFAULT_EXPIRATION, JSON.stringify(user));
-      return res.json(user);
-    })
-    .catch((error) => {
-      console.error('Error:', error);
-    });
 }
-
 
 
 

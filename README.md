@@ -1,13 +1,20 @@
-Basic Microservices for Online Shopping Platform
+# Test Commands
+## Direct to Server
 
-Make sure all three services are running fine locally before doing anything. Also, here we are using RabbitMq and Reddis too so set them up locally so you would not face any issues while running the APIs locally.
+curl -X POST http://localhost:3001/users/register -H "Content-Type: application/json" -d '{"name":"test", "email":"test@example.com", "password":"1234"}'
 
--> ALso change the .env.ex to .env in all three services so it can connect to the database.
+curl -X POST http://localhost:3001/users/login -H "Content-Type: application/json" -d '{"email":"test@example.com", "password":"1234"}'
 
-Test command for user service: curl -X POST http://localhost:3001/users/register -H "Content-Type: application/json" -d '{"name":"", "email":"@example.com", "password":""}'
+curl -X POST http://localhost:3002/product/create -H "Content-Type: application/json" -d '{"name":"New Product", "description":"A new product description", "price":99.99}'
 
-Use the above command to test whether the user service is working fine. 
+curl -X POST http://localhost:3002/product/buy -H "Content-Type: application/json" -d '{"ids":["668b7c6ca8b30a0fe3823a72"]}'
 
+## Nginx Reverse Proxy
 
+curl -X POST http://localhost/users/login -H "Content-Type: application/json" -d '{"email":"test@example.com", "password":"1234"}'
 
+curl -X POST http://localhost/users/register -H "Content-Type: application/json" -d '{"name":"test", "email":"test@example.com", "password":"1234"}'
 
+curl -X POST http://localhost/product/create -H "Content-Type: application/json" -d '{"name":"Toothpaste", "description":"Brush your teeth", "price":100}'
+
+curl -X POST http://localhost/product/buy -H "Content-Type: application/json" -d '{"ids":["668b7c6ca8b30a0fe3823a72"]}'
