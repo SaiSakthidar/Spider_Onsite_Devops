@@ -2,17 +2,24 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_CREDENTIALS_ID = 'dockerhub-credentials'
-        DOCKER_REGISTRY = 'your-docker-registry'
-        DOCKER_IMAGE_USER = 'your-docker-image-user'
-        DOCKER_IMAGE_PRODUCT = 'your-docker-image-product'
-        DOCKER_IMAGE_ORDER = 'your-docker-image-order'
+        DOCKER_REGISTRY = 'localhost:5000' 
+        DOCKER_IMAGE_USER = 'localhost:5000/user-service' 
+        DOCKER_IMAGE_PRODUCT = 'localhost:5000/product-service' 
+        DOCKER_IMAGE_ORDER = 'localhost:5000/order-service'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git 'https://your-repo-url.git'
+                dir('C:/Users/saisa/OneDrive/Desktop/spider/spider_sw_task2/spiderTask-2') {
+                    script {
+                        if (!fileExists('.git')) {
+                            sh 'git init'
+                        }
+                        sh 'git fetch'
+                        sh 'git checkout -f'
+                    }
+                }
             }
         }
 
