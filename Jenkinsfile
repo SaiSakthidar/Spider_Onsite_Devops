@@ -2,19 +2,13 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_REGISTRY = 'localhost:5000' 
-        DOCKER_IMAGE_USER = 'localhost:5000/user-service' 
-        DOCKER_IMAGE_PRODUCT = 'localhost:5000/product-service' 
-        DOCKER_IMAGE_ORDER = 'localhost:5000/order-service'
+        DOCKER_IMAGE_USER = "localhost:5000/user-service"
+        DOCKER_IMAGE_PRODUCT = "localhost:5000/product-service"
+        DOCKER_IMAGE_ORDER = "localhost:5000/order-service"
+        DOCKER_REGISTRY = "localhost:5000"
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                git credentialsId: 'github-api', url: 'https://github.com/SaiSakthidar/Spider_Onsite_Devops', branch: 'main'
-            }
-        }
-
         stage('Build Docker Images') {
             steps {
                 script {
@@ -28,15 +22,15 @@ pipeline {
         stage('Run Unit Tests') {
             steps {
                 script {
-                    docker.image("${env.DOCKER_IMAGE_USER}").inside('-w /usr/src/app') {
+                    docker.image("${env.DOCKER_IMAGE_USER}").inside('-v C:/ProgramData/Jenkins/.jenkins/workspace/Spider_Onsite_Pipeline/:/usr/src/app') {
                         sh 'npm install'
                         sh 'npm test'
                     }
-                    docker.image("${env.DOCKER_IMAGE_PRODUCT}").inside('-w /usr/src/app') {
+                    docker.image("${env.DOCKER_IMAGE_PRODUCT}").inside('-v C:/ProgramData/Jenkins/.jenkins/workspace/Spider_Onsite_Pipeline/:/usr/src/app') {
                         sh 'npm install'
                         sh 'npm test'
                     }
-                    docker.image("${env.DOCKER_IMAGE_ORDER}").inside('-w /usr/src/app') {
+                    docker.image("${env.DOCKER_IMAGE_ORDER}").inside('-v C:/ProgramData/Jenkins/.jenkins/workspace/Spider_Onsite_Pipeline/:/usr/src/app') {
                         sh 'npm install'
                         sh 'npm test'
                     }
