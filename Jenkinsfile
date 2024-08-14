@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git credentialsId: 'Github', url: 'https://github.com/SaiSakthidar/Spider_Onsite_Devops',branch: 'main'
+                git credentialsId: 'github-api', url: 'https://github.com/SaiSakthidar/Spider_Onsite_Devops',branch: 'main'
             }
         }
 
