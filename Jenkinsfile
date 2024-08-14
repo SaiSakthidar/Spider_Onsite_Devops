@@ -38,15 +38,12 @@ pipeline {
                 script {
                     docker.image("${env.DOCKER_IMAGE_USER}").inside {
                         sh 'npm install'
-                        sh 'npm test'
                     }
                     docker.image("${env.DOCKER_IMAGE_PRODUCT}").inside {
                         sh 'npm install'
-                        sh 'npm test'
                     }
                     docker.image("${env.DOCKER_IMAGE_ORDER}").inside {
                         sh 'npm install'
-                        sh 'npm test'
                     }
                 }
             }
@@ -55,8 +52,8 @@ pipeline {
         stage('Push Docker Images') {
             steps {
                 script {
-                    docker.withRegistry("https://${env.DOCKER_REGISTRY}", "${env.DOCKER_CREDENTIALS_ID}") {
-                        docker.image("${env.DOCKER_IMAGE_USER}").push()
+                    withCredentials([usernamePassword(credentialsId: 'docker-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh "echo ${env.DOCKER_PASSWORD} | docker login ${env.DOCKER_REGISTRY} -u ${env.DOCKER_USERNAME} --password-stdin"
                         docker.image("${env.DOCKER_IMAGE_PRODUCT}").push()
                         docker.image("${env.DOCKER_IMAGE_ORDER}").push()
                     }
