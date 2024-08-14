@@ -22,15 +22,16 @@ pipeline {
         stage('Run Unit Tests') {
             steps {
                 script {
-                    docker.image("${env.DOCKER_IMAGE_USER}").inside('-v C:/ProgramData/Jenkins/.jenkins/workspace/Spider_Onsite_Pipeline/:/usr/src/app') {
+                    // Use Unix-style paths inside the Docker container
+                    docker.image("${env.DOCKER_IMAGE_USER}").inside('-v $WORKSPACE:/usr/src/app -w /usr/src/app/user-service') {
                         sh 'npm install'
                         sh 'npm test'
                     }
-                    docker.image("${env.DOCKER_IMAGE_PRODUCT}").inside('-v C:/ProgramData/Jenkins/.jenkins/workspace/Spider_Onsite_Pipeline/:/usr/src/app') {
+                    docker.image("${env.DOCKER_IMAGE_PRODUCT}").inside('-v $WORKSPACE:/usr/src/app -w /usr/src/app/product-service') {
                         sh 'npm install'
                         sh 'npm test'
                     }
-                    docker.image("${env.DOCKER_IMAGE_ORDER}").inside('-v C:/ProgramData/Jenkins/.jenkins/workspace/Spider_Onsite_Pipeline/:/usr/src/app') {
+                    docker.image("${env.DOCKER_IMAGE_ORDER}").inside('-v $WORKSPACE:/usr/src/app -w /usr/src/app/order-service') {
                         sh 'npm install'
                         sh 'npm test'
                     }
