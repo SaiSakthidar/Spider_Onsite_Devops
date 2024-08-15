@@ -1,0 +1,63 @@
+stages:
+  - build
+  - test
+  - push
+
+variables:
+  DOCKER_DRIVER: overlay2
+  USER_SERVICE_IMAGE: "localhost:5000/user-service"
+  PRODUCT_SERVICE_IMAGE: "localhost:5000/product-service"
+  ORDER_SERVICE_IMAGE: "localhost:5000/order-service"
+  REGISTRY: "localhost:5000"
+  WORKSPACE_PATH: "${CI_PROJECT_DIR}"
+
+build_docker_images:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker build -t ${USER_SERVICE_IMAGE} -f ./user-service/Dockerfile.user ./user-service
+    - docker build -t ${PRODUCT_SERVICE_IMAGE} -f ./product-service/Dockerfile.product ./product-service
+    - docker build -t ${ORDER_SERVICE_IMAGE} -f ./order-service/Dockerfile.order ./order-service
+
+test_user_service:
+  stage: test
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker run --rm -v ${WORKSPACE_PATH}:${WORKSPACE_PATH} -w ${WORKSPACE_PATH}/user-service ${USER_SERVICE_IMAGE} npm install
+    - docker run --rm -v ${WORKSPACE_PATH}:${WORKSPACE_PATH} -w ${WORKSPACE_PATH}/user-service ${USER_SERVICE_IMAGE} npm test
+
+test_product_service:
+  stage: test
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker run --rm -v ${WORKSPACE_PATH}:${WORKSPACE_PATH} -w ${WORKSPACE_PATH}/product-service ${PRODUCT_SERVICE_IMAGE} npm install
+    - docker run --rm -v ${WORKSPACE_PATH}:${WORKSPACE_PATH} -w ${WORKSPACE_PATH}/product-service ${PRODUCT_SERVICE_IMAGE} npm test
+
+test_order_service:
+  stage: test
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker run --rm -v ${WORKSPACE_PATH}:${WORKSPACE_PATH} -w ${WORKSPACE_PATH}/order-service ${ORDER_SERVICE_IMAGE} npm install
+    - docker run --rm -v ${WORKSPACE_PATH}:${WORKSPACE_PATH} -w ${WORKSPACE_PATH}/order-service ${ORDER_SERVICE_IMAGE} npm test
+
+push_docker_images:
+  stage: push
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - echo "${CI_REGISTRY_PASSWORD}" | docker login ${REGISTRY} -u "${CI_REGISTRY_USER}" --password-stdin
+    - docker push ${USER_SERVICE_IMAGE}
+    - docker push ${PRODUCT_SERVICE_IMAGE}
+    - docker push ${ORDER_SERVICE_IMAGE}
+
+after_script:
+  - docker system prune -af
