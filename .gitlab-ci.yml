@@ -1,15 +1,17 @@
 stages:
   - build
   - test
-  - push
+  - deploy
 
 variables:
   DOCKER_DRIVER: overlay2
-  USER_SERVICE_IMAGE: "localhost:5000/user-service"
-  PRODUCT_SERVICE_IMAGE: "localhost:5000/product-service"
-  ORDER_SERVICE_IMAGE: "localhost:5000/order-service"
-  REGISTRY: "localhost:5000"
-  WORKSPACE_PATH: "${CI_PROJECT_DIR}"
+  USER_SERVICE_IMAGE: "${DOCKER_HUB_IMAGE}/user-service"
+  PRODUCT_SERVICE_IMAGE: "${DOCKER_HUB_IMAGE}/product-service"
+  ORDER_SERVICE_IMAGE: "${DOCKER_HUB_IMAGE}/order-service"
+  REGISTRY: "docker.io"
+
+before_script:
+  - docker login -u "$DOCKER_HUB_USERNAME" -p "$DOCKER_HUB_PASSWORD" $REGISTRY
 
 build_docker_images:
   stage: build
@@ -20,6 +22,9 @@ build_docker_images:
     - docker build -t ${USER_SERVICE_IMAGE} -f ./user-service/Dockerfile.user ./user-service
     - docker build -t ${PRODUCT_SERVICE_IMAGE} -f ./product-service/Dockerfile.product ./product-service
     - docker build -t ${ORDER_SERVICE_IMAGE} -f ./order-service/Dockerfile.order ./order-service
+    - docker push ${USER_SERVICE_IMAGE}
+    - docker push ${PRODUCT_SERVICE_IMAGE}
+    - docker push ${ORDER_SERVICE_IMAGE}
 
 test_user_service:
   stage: test
@@ -27,8 +32,8 @@ test_user_service:
   services:
     - docker:dind
   script:
-    - docker run --rm -v ${WORKSPACE_PATH}:${WORKSPACE_PATH} -w ${WORKSPACE_PATH}/user-service ${USER_SERVICE_IMAGE} npm install
-    - docker run --rm -v ${WORKSPACE_PATH}:${WORKSPACE_PATH} -w ${WORKSPACE_PATH}/user-service ${USER_SERVICE_IMAGE} npm test
+    - docker run --rm ${USER_SERVICE_IMAGE} npm install
+    - docker run --rm ${USER_SERVICE_IMAGE} npm test
 
 test_product_service:
   stage: test
@@ -36,8 +41,8 @@ test_product_service:
   services:
     - docker:dind
   script:
-    - docker run --rm -v ${WORKSPACE_PATH}:${WORKSPACE_PATH} -w ${WORKSPACE_PATH}/product-service ${PRODUCT_SERVICE_IMAGE} npm install
-    - docker run --rm -v ${WORKSPACE_PATH}:${WORKSPACE_PATH} -w ${WORKSPACE_PATH}/product-service ${PRODUCT_SERVICE_IMAGE} npm test
+    - docker run --rm ${PRODUCT_SERVICE_IMAGE} npm install
+    - docker run --rm ${PRODUCT_SERVICE_IMAGE} npm test
 
 test_order_service:
   stage: test
@@ -45,19 +50,15 @@ test_order_service:
   services:
     - docker:dind
   script:
-    - docker run --rm -v ${WORKSPACE_PATH}:${WORKSPACE_PATH} -w ${WORKSPACE_PATH}/order-service ${ORDER_SERVICE_IMAGE} npm install
-    - docker run --rm -v ${WORKSPACE_PATH}:${WORKSPACE_PATH} -w ${WORKSPACE_PATH}/order-service ${ORDER_SERVICE_IMAGE} npm test
+    - docker run --rm ${ORDER_SERVICE_IMAGE} npm install
+    - docker run --rm ${ORDER_SERVICE_IMAGE} npm test
 
-push_docker_images:
-  stage: push
-  image: docker:latest
+deploy_to_staging:
+  stage: deploy
+  image: docker/compose:latest
   services:
     - docker:dind
   script:
-    - echo "${CI_REGISTRY_PASSWORD}" | docker login ${REGISTRY} -u "${CI_REGISTRY_USER}" --password-stdin
-    - docker push ${USER_SERVICE_IMAGE}
-    - docker push ${PRODUCT_SERVICE_IMAGE}
-    - docker push ${ORDER_SERVICE_IMAGE}
-
-after_script:
-  - docker system prune -af
+    - docker-compose -f docker-compose.yml up -d
+  only:
+    - main
